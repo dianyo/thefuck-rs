@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn test_chmod_x_with_actual_file() {
-        let rule = ChmodXRule::new();
+        let _rule = ChmodXRule::new();
 
         // Create a temporary file without execute permission
         let dir = tempdir().unwrap();

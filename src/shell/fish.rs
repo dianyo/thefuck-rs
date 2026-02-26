@@ -92,7 +92,7 @@ end"#,
         let reader = BufReader::new(file);
         let lines: Vec<String> = reader
             .lines()
-            .filter_map(|l| l.ok())
+            .map_while(|l| l.ok())
             .filter_map(|l| Self::script_from_history(&l))
             .filter(|l| !l.is_empty())
             .collect();

@@ -69,7 +69,7 @@ mod tests {
         let dir_str = current_dir.to_string_lossy();
 
         let cmd = Command::new(
-            &format!("cat {}", dir_str),
+            format!("cat {}", dir_str),
             Some(format!("cat: {}: Is a directory", dir_str)),
         );
 

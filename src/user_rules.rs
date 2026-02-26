@@ -151,7 +151,7 @@ pub fn load_user_rules() -> Vec<Box<dyn Rule>> {
     for entry in entries.flatten() {
         let path = entry.path();
 
-        if path.extension().map_or(false, |ext| ext == "toml") {
+        if path.extension().is_some_and(|ext| ext == "toml") {
             if let Some(rule) = load_rule_from_file(&path) {
                 rules.push(Box::new(rule));
             }

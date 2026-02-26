@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_no_command_matches_not_found() {
-        let rule = NoCommandRule::new();
+        let _rule = NoCommandRule::new();
         // This test is environment-dependent (needs git on PATH)
         // We're testing the logic, not the actual matching
         let cmd = Command::new(

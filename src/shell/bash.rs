@@ -98,7 +98,7 @@ impl ShellOperations for Bash {
         let reader = BufReader::new(file);
         let lines: Vec<String> = reader
             .lines()
-            .filter_map(|l| l.ok())
+            .map_while(|l| l.ok())
             .filter(|l| !l.is_empty())
             .collect();
 
