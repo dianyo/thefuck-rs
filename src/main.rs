@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use thefuck::config::Settings;
-use thefuck::shell::detect_shell;
+use thefuck::shell::{create_shell, detect_shell, get_raw_command_from_history};
 
 /// thefuck-rs - Magnificent app which corrects your previous console command
 #[derive(Parser, Debug)]
@@ -75,7 +75,7 @@ fn main() {
 
     match cli.command {
         Some(Commands::Alias { name }) => {
-            print_alias(&name);
+            print_alias(&name, &settings);
         }
         Some(Commands::Version) => {
             println!("thefuck-rs {}", env!("CARGO_PKG_VERSION"));
@@ -107,78 +107,16 @@ fn main() {
     }
 }
 
-fn print_alias(name: &str) {
+fn print_alias(name: &str, settings: &Settings) {
     match detect_shell() {
-        Ok(shell) => {
-            let alias = generate_alias(name, &shell.shell_type);
+        Ok(detected) => {
+            let shell = create_shell(detected.shell_type, settings.clone());
+            let alias = shell.app_alias(name);
             println!("{}", alias);
         }
         Err(e) => {
             eprintln!("{}: {}", "Error detecting shell".red(), e);
             std::process::exit(1);
-        }
-    }
-}
-
-fn generate_alias(name: &str, shell_type: &thefuck::shell::ShellType) -> String {
-    use thefuck::shell::ShellType;
-
-    match shell_type {
-        ShellType::Bash | ShellType::Zsh => {
-            format!(
-                r#"{name} () {{
-    TF_PYTHONIOENCODING=$PYTHONIOENCODING;
-    export TF_SHELL={shell};
-    export TF_ALIAS={name};
-    export TF_SHELL_ALIASES=$(alias);
-    export TF_HISTORY="$(fc -ln -10)";
-    export PYTHONIOENCODING=utf-8;
-    TF_CMD=$(
-        thefuck --force-command "$TF_HISTORY"
-    ) && eval "$TF_CMD";
-    unset TF_HISTORY;
-    export PYTHONIOENCODING=$TF_PYTHONIOENCODING;
-    history -s "$TF_CMD";
-}}"#,
-                name = name,
-                shell = shell_type.name()
-            )
-        }
-        ShellType::Fish => {
-            format!(
-                r#"function {name} -d "Correct your previous console command"
-    set -l TF_HISTORY (builtin history -n 10)
-    set -lx TF_SHELL fish
-    set -lx TF_ALIAS {name}
-    set -l TF_CMD (thefuck --force-command "$TF_HISTORY")
-    if test -n "$TF_CMD"
-        eval "$TF_CMD"
-        builtin history delete --exact --case-sensitive -- (builtin history -n 1)
-        builtin history merge
-    end
-end"#,
-                name = name
-            )
-        }
-        ShellType::PowerShell => {
-            format!(
-                r#"function {name} {{
-    $TF_HISTORY = (Get-History -Count 10 | ForEach-Object {{ $_.CommandLine }}) -join "`n"
-    $env:TF_SHELL = "powershell"
-    $env:TF_ALIAS = "{name}"
-    $TF_CMD = (thefuck --force-command $TF_HISTORY)
-    if ($TF_CMD) {{
-        Invoke-Expression $TF_CMD
-    }}
-}}"#,
-                name = name
-            )
-        }
-        _ => {
-            format!(
-                "# Shell '{}' is not fully supported yet.\n# Please contribute!",
-                shell_type.name()
-            )
         }
     }
 }
@@ -260,18 +198,60 @@ fn show_config(settings: &Settings) {
     }
 }
 
-fn fix_command(command: &str, settings: &Settings) {
+fn fix_command(history_or_command: &str, settings: &Settings) {
+    // Extract the actual command from history if needed
+    let command = get_raw_command_from_history(history_or_command)
+        .unwrap_or_else(|| history_or_command.to_string());
+
     if settings.debug {
         eprintln!("{}: {}", "Fixing command".blue(), command);
-        eprintln!("  Timeout: {}s", settings.get_timeout(command));
+        eprintln!("  Timeout: {}s", settings.get_timeout(&command));
         eprintln!("  Require confirmation: {}", settings.require_confirmation);
     }
 
-    // TODO: Implement actual command fixing
-    // For now, just echo back the command
+    // Get command output by re-running
+    if settings.debug {
+        eprintln!("{}", "Re-running command to get output...".dimmed());
+    }
+
+    let output = match thefuck::shell::get_output(&command, &command, settings) {
+        Ok(Some(out)) => {
+            if settings.debug {
+                eprintln!("{}", "Got command output:".dimmed());
+                for line in out.lines().take(5) {
+                    eprintln!("  {}", line.dimmed());
+                }
+                if out.lines().count() > 5 {
+                    eprintln!("  {}", "...".dimmed());
+                }
+            }
+            Some(out)
+        }
+        Ok(None) => {
+            if settings.debug {
+                eprintln!("{}", "Command timed out".yellow());
+            }
+            None
+        }
+        Err(e) => {
+            if settings.debug {
+                eprintln!("{}: {}", "Failed to get output".red(), e);
+            }
+            None
+        }
+    };
+
+    // Create a Command object
+    let cmd = thefuck::Command::new(&command, output);
+
+    if settings.debug {
+        eprintln!("{}: {}", "Command object".blue(), cmd);
+    }
+
+    // TODO: Implement actual rule matching (Phase 4+)
     println!(
         "{}",
-        "Command fixing not yet implemented. Phase 4+ required.".yellow()
+        "Rule matching not yet implemented. Phase 4+ required.".yellow()
     );
-    println!("Input: {}", command);
+    println!("Command: {}", command);
 }

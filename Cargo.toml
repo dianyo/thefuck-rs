@@ -48,6 +48,9 @@ dirs = "5"
 # Shell command parsing
 shlex = "1"
 
+# Shell escaping
+shell-escape = "0.1"
+
 [dev-dependencies]
 # Benchmarking
 criterion = { version = "0.5", features = ["html_reports"] }
