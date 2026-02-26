@@ -1,16 +1,28 @@
-# thefuck-rs
+# 🦀 thefuck-rs
 
-A blazingly fast Rust implementation of [thefuck](https://github.com/nvbn/thefuck) - the magnificent app that corrects your previous console command.
+> **Too slow for the fuck? Try fuck in Rust!** ⚡
 
-## Features
+A **blazingly fast** 🔥 Rust implementation of [thefuck](https://github.com/nvbn/thefuck) - the magnificent app that corrects your previous console command.
 
-- **100x faster** than the Python version (~3ms vs ~300ms startup)
-- **19 built-in rules** covering common mistakes
-- **User-defined rules** via TOML configuration
-- **Interactive selection** with arrow keys or vim-style navigation
-- **Shell integration** for Bash, Zsh, and Fish
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Installation
+## ⚡ Why thefuck-rs?
+
+| | Rust 🦀 | Python 🐍 | Winner |
+|---|---------|-----------|--------|
+| **Startup** | 2.7 ms | 151 ms | **56x faster** 🚀 |
+| **Correction** | 112 ms | 233 ms | **2x faster** ⚡ |
+| **Memory** | 1.8 MB | 36 MB | **20x less** 💾 |
+
+**Your typos deserve instant fuck, not fuck with a coffee sip.** ☕→⚡
+
+## ✨ Features
+
+- 🚀 **Instant startup** - Ready before you blink
+- 🧠 **19 built-in rules** - Covers common mistakes
+- 🐚 **Shell support** - Bash, Zsh, Fish
+
+## 📦 Installation
 
 ### From Source
 
@@ -20,170 +32,66 @@ cd thefuck-rs
 cargo install --path .
 ```
 
-### Pre-built Binaries
+## 🚀 Quick Start
 
-Download from the [releases page](https://github.com/your-username/thefuck-rs/releases).
+**1. Initialize:**
+```bash
+thefuck init
+```
 
-## Quick Start
+**2. Add to your shell** (~/.zshrc or ~/.bashrc):
+```bash
+eval "$(thefuck alias)"
+```
 
-1. Initialize configuration:
-   ```bash
-   thefuck init
-   ```
+**3. Restart shell and make mistakes:**
+```bash
+$ git psuh origin main
+git: 'psuh' is not a git command...
 
-2. Add to your shell config:
+$ fuck
+git push origin main [enter/↑/↓/ctrl+c]
+```
 
-   **Bash** (~/.bashrc):
-   ```bash
-   eval "$(thefuck alias)"
-   ```
-
-   **Zsh** (~/.zshrc):
-   ```bash
-   eval "$(thefuck alias)"
-   ```
-
-   **Fish** (~/.config/fish/config.fish):
-   ```fish
-   thefuck alias | source
-   ```
-
-3. Restart your shell or source the config:
-   ```bash
-   source ~/.bashrc  # or ~/.zshrc
-   ```
-
-4. Make a mistake and type `fuck`:
-   ```bash
-   $ git psuh origin main
-   git: 'psuh' is not a git command...
-   
-   $ fuck
-   git push origin main [enter/↑/↓/ctrl+c]
-   ```
-
-## Usage
+## 🎮 Usage
 
 ```bash
-# Fix the last command interactively
-fuck
-
-# Fix without confirmation
-fuck -y
-
-# Fix a specific command
-thefuck -f "git psuh"
-
-# Show available commands
-thefuck --help
+fuck              # Fix the last command (interactive)
+fuck -y           # Fix without confirmation (YOLO mode 🎲)
+thefuck -f "cmd"  # Fix a specific command
+thefuck --help    # Show all options
 ```
 
-## Configuration
+## 🏎️ Benchmarks
 
-Configuration is stored in `~/.config/thefuck/settings.toml` (or `~/Library/Application Support/thefuck/settings.toml` on macOS).
+See [BENCHMARKS.md](BENCHMARKS.md) for detailed performance comparison.
 
-```toml
-# Wait time for slow commands (seconds)
-wait_command = 3
-
-# Whether to require confirmation before running
-require_confirmation = true
-
-# Rules to exclude
-exclude_rules = []
-
-# Custom priorities
-[priority]
-sudo = 500
+```
+Startup:    Rust ██ 2.7ms   vs   Python ████████████████████████ 151ms
+Memory:     Rust ██ 1.8MB   vs   Python ████████████████████████ 36MB
 ```
 
-### Environment Variables
+## 🤝 Contributing
 
-- `TF_ALIAS` - Custom alias name (default: fuck)
-- `TF_HISTORY` - Command history (set by shell alias)
-- `TF_SHELL` - Override detected shell
-- `THEFUCK_DEBUG` - Enable debug output
-- `THEFUCK_NO_COLORS` - Disable colored output
-
-## Built-in Rules
-
-| Rule | Description |
-|------|-------------|
-| `sudo` | Prepend `sudo` when permission denied |
-| `git_push` | Fix `git push` upstream errors |
-| `git_not_command` | Fix git command typos |
-| `git_add` | Add missing files before commit |
-| `git_stash` | Help with stash operations |
-| `no_command` | Suggest similar commands |
-| `cd_parent` | Fix `cd..` → `cd ..` |
-| `cd_mkdir` | Create directory and cd into it |
-| `mkdir_p` | Add `-p` flag for nested directories |
-| `rm_dir` | Add `-r` flag for directories |
-| `cp_omitting_directory` | Add `-r` flag for directories |
-| `cat_dir` | Replace `cat` with `ls` for directories |
-| `chmod_x` | Add execute permission for scripts |
-| `touch` | Create parent directories |
-| `cargo_no_command` | Fix cargo subcommand typos |
-| `python_command` | Add `python` prefix for .py files |
-| `man_no_space` | Fix `mangit` → `man git` |
-| `ls_la` | Fix `ls` typos |
-| `open` | Replace `open` with `xdg-open` on Linux |
-
-## User-Defined Rules
-
-Create custom rules in `~/.config/thefuck/rules/`:
-
-```toml
-# my_rule.toml
-name = "my_custom_rule"
-enabled = true
-priority = 1000
-
-# Regex pattern to match command
-match_script = "^myapp (.+)$"
-
-# Optional: Also match output
-match_output = "error: invalid option"
-
-# Fixed replacement
-new_command = "myapp --fixed"
-
-# Or pattern-based (with capture groups)
-new_command_pattern = "myapp --correct $1"
-```
-
-## Performance
-
-| Metric | Rust | Python | Improvement |
-|--------|------|--------|-------------|
-| Startup | ~3ms | ~300ms | 100x |
-| Correction | ~340µs | ~50-200ms | 150-600x |
-| Memory | ~2MB | ~30-50MB | 15-25x |
-
-Run benchmarks:
-```bash
-cargo bench
-./benchmark_comparison.sh
-```
-
-## Development
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```bash
-# Run tests
-cargo test
-
-# Run with debug output
-cargo run -- -d -f "git psuh"
-
-# Build release binary
-cargo build --release
+cargo test      # Run tests
+cargo bench     # Run benchmarks
+cargo clippy    # Lint
 ```
 
-## License
+## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE)
 
-## Acknowledgments
+## 🙏 Credits
 
-- [nvbn/thefuck](https://github.com/nvbn/thefuck) - The original Python implementation
-- All contributors to the original project
+- [nvbn/thefuck](https://github.com/nvbn/thefuck) - The original masterpiece 🐍
+- All contributors to both projects ❤️
+
+---
+
+<p align="center">
+  <b>Stop waiting. Start fucking (your typos). 🦀⚡</b>
+</p>
