@@ -261,36 +261,20 @@ fn fix_command(history_or_command: &str, settings: &Settings) {
     let corrections = corrector.get_corrected_commands(&cmd);
 
     if corrections.is_empty() {
-        println!(
-            "{}",
-            "No correction found. Add more rules in Phase 5+.".yellow()
-        );
-        println!("Command: {}", command);
-    } else {
-        // For now, just print the first correction
-        // UI selection will be added in Phase 6
-        println!("{}", "Corrections found:".green());
-        for (i, correction) in corrections.iter().enumerate() {
-            if i == 0 {
-                println!(
-                    "  {} {} {}",
-                    "→".green(),
-                    correction.script.green().bold(),
-                    format!("[{}]", correction.rule_name).dimmed()
-                );
-            } else {
-                println!(
-                    "    {} {}",
-                    correction.script,
-                    format!("[{}]", correction.rule_name).dimmed()
-                );
-            }
+        if settings.no_colors {
+            eprintln!("No fucks given");
+        } else {
+            eprintln!("{}", "No fucks given".red());
         }
+        return;
+    }
 
-        // Output the first correction for the shell to eval
-        // (In the real flow, this would be selected by the user)
-        if !settings.require_confirmation {
-            print!("{}", corrections[0].script);
-        }
+    // Use interactive selection
+    if let Some(selected) = thefuck::select_command(corrections, settings) {
+        // Run side effect if present
+        selected.run_side_effect(&cmd);
+
+        // Output the selected command for the shell to eval
+        print!("{}", selected.script);
     }
 }
