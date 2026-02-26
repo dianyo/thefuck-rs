@@ -1,10 +1,11 @@
 use crate::config::Settings;
 use crate::types::CorrectedCommand;
-use colored::{control::set_override, Colorize};
+use colored::Colorize;
 use crossterm::{
     cursor,
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
+    style::{Color, Print, SetForegroundColor, ResetColor},
     terminal::{self, ClearType},
 };
 use std::io::{self, Write};
@@ -131,19 +132,47 @@ fn show_confirmation(selector: &CommandSelector, no_colors: bool) {
     let mut stderr = io::stderr();
     execute!(stderr, cursor::MoveToColumn(0), terminal::Clear(ClearType::CurrentLine)).ok();
 
-    // Build the prompt
+    // Build the prompt using crossterm styling (works in raw mode)
     if no_colors {
         eprint!(
             "{} [{}/{}] [enter/↑/↓/ctrl+c]",
             cmd.script, index + 1, total
         );
     } else {
-        eprint!(
-            "{} {} {}",
-            cmd.script.green().bold(),
-            format!("[{}/{}]", index + 1, total).dimmed(),
-            "[enter/↑/↓/ctrl+c]".dimmed()
-        );
+        // Use crossterm's execute! macro for colors in raw mode
+        // cmd: white, enter: green, arrows: gray, ctrl+c: red
+        execute!(
+            stderr,
+            // Command in white
+            SetForegroundColor(Color::White),
+            Print(&cmd.script),
+            ResetColor,
+            Print(" "),
+            // Index in gray
+            SetForegroundColor(Color::DarkGrey),
+            Print(format!("[{}/{}]", index + 1, total)),
+            ResetColor,
+            Print(" ["),
+            // enter in green
+            SetForegroundColor(Color::Green),
+            Print("enter"),
+            ResetColor,
+            Print("/"),
+            // arrows in gray
+            SetForegroundColor(Color::DarkGrey),
+            Print("↑"),
+            ResetColor,
+            Print("/"),
+            SetForegroundColor(Color::DarkGrey),
+            Print("↓"),
+            ResetColor,
+            Print("/"),
+            // ctrl+c in red
+            SetForegroundColor(Color::Red),
+            Print("ctrl+c"),
+            ResetColor,
+            Print("]"),
+        ).ok();
     }
     stderr.flush().ok();
 }
@@ -218,11 +247,6 @@ fn select_interactive(
     mut selector: CommandSelector,
     settings: &Settings,
 ) -> Option<CorrectedCommand> {
-    // Force colors on before entering raw mode (raw mode can break TTY detection)
-    if !settings.no_colors {
-        set_override(true);
-    }
-
     // Enable raw mode for key reading
     if terminal::enable_raw_mode().is_err() {
         // Fallback to non-interactive mode if raw mode fails
