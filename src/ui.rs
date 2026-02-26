@@ -1,6 +1,6 @@
 use crate::config::Settings;
 use crate::types::CorrectedCommand;
-use colored::Colorize;
+use colored::{control::set_override, Colorize};
 use crossterm::{
     cursor,
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
@@ -218,6 +218,11 @@ fn select_interactive(
     mut selector: CommandSelector,
     settings: &Settings,
 ) -> Option<CorrectedCommand> {
+    // Force colors on before entering raw mode (raw mode can break TTY detection)
+    if !settings.no_colors {
+        set_override(true);
+    }
+
     // Enable raw mode for key reading
     if terminal::enable_raw_mode().is_err() {
         // Fallback to non-interactive mode if raw mode fails
