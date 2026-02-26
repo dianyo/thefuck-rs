@@ -1,0 +1,62 @@
+[package]
+name = "thefuck-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <you@example.com>"]
+description = "A Rust port of thefuck - magnificent app which corrects your previous console command"
+license = "MIT"
+repository = "https://github.com/yourusername/thefuck-rs"
+keywords = ["cli", "shell", "command", "correction", "typo"]
+categories = ["command-line-utilities"]
+
+[lib]
+name = "thefuck"
+path = "src/lib.rs"
+
+[[bin]]
+name = "thefuck"
+path = "src/main.rs"
+
+[dependencies]
+# CLI argument parsing
+clap = { version = "4", features = ["derive"] }
+
+# Serialization for config
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+
+# Terminal colors
+colored = "2"
+
+# Terminal UI
+crossterm = "0.27"
+
+# String similarity for fuzzy matching
+strsim = "0.11"
+
+# Error handling
+thiserror = "1"
+anyhow = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Directory paths (XDG)
+dirs = "5"
+
+# Shell command parsing
+shlex = "1"
+
+[dev-dependencies]
+# Benchmarking
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "benchmark"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1

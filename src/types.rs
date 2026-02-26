@@ -1,0 +1,295 @@
+use std::fmt;
+
+/// Represents a command that failed and needs correction.
+///
+/// This is the Rust equivalent of Python's `Command` class in `thefuck/types.py`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Command {
+    /// The original command script that was executed
+    pub script: String,
+    /// The output (stdout + stderr) from the failed command
+    pub output: Option<String>,
+    /// Cached parsed command parts (lazily computed)
+    script_parts_cache: Option<Vec<String>>,
+}
+
+impl Command {
+    /// Creates a new Command with the given script and output.
+    pub fn new(script: impl Into<String>, output: Option<String>) -> Self {
+        Self {
+            script: script.into(),
+            output,
+            script_parts_cache: None,
+        }
+    }
+
+    /// Creates a Command from a raw script, expanding aliases and getting output.
+    ///
+    /// This is the equivalent of Python's `Command.from_raw_script()`.
+    pub fn from_raw_script(raw_script: &str) -> crate::error::Result<Self> {
+        let script = raw_script.trim();
+        if script.is_empty() {
+            return Err(crate::error::TheFuckError::EmptyCommand);
+        }
+
+        // TODO: Expand shell aliases
+        // TODO: Get command output by re-running or reading from log
+
+        Ok(Self::new(script.to_string(), None))
+    }
+
+    /// Returns the command split into parts (e.g., ["git", "push", "origin"]).
+    ///
+    /// Uses shell-aware splitting to handle quotes and escapes properly.
+    pub fn script_parts(&mut self) -> &[String] {
+        if self.script_parts_cache.is_none() {
+            self.script_parts_cache = Some(
+                shlex::split(&self.script).unwrap_or_else(|| {
+                    // Fallback to simple whitespace splitting
+                    self.script.split_whitespace().map(String::from).collect()
+                }),
+            );
+        }
+        self.script_parts_cache.as_ref().unwrap()
+    }
+
+    /// Returns a new Command with updated fields.
+    pub fn update(&self, script: Option<String>, output: Option<Option<String>>) -> Self {
+        Self {
+            script: script.unwrap_or_else(|| self.script.clone()),
+            output: output.unwrap_or_else(|| self.output.clone()),
+            script_parts_cache: None,
+        }
+    }
+}
+
+impl fmt::Display for Command {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "Command(script={:?}, output={:?})",
+            self.script,
+            self.output.as_ref().map(|s| if s.len() > 50 {
+                format!("{}...", &s[..50])
+            } else {
+                s.clone()
+            })
+        )
+    }
+}
+
+/// Represents a correction rule.
+///
+/// In Rust, we use a trait-based approach instead of Python's dynamic functions.
+/// Built-in rules implement this trait directly, while user-defined rules can
+/// use a dynamic wrapper.
+pub trait Rule: Send + Sync {
+    /// Returns the name of the rule (e.g., "sudo", "git_push").
+    fn name(&self) -> &str;
+
+    /// Returns true if this rule can fix the given command.
+    fn matches(&self, command: &Command) -> bool;
+
+    /// Returns one or more corrected command scripts.
+    fn get_new_command(&self, command: &Command) -> Vec<String>;
+
+    /// Optional side effect to run before executing the corrected command.
+    /// Default implementation does nothing.
+    fn side_effect(&self, _old_cmd: &Command, _new_script: &str) {
+        // No side effect by default
+    }
+
+    /// Returns the priority of this rule. Lower values = higher priority.
+    /// Default is 1000.
+    fn priority(&self) -> i32 {
+        DEFAULT_PRIORITY
+    }
+
+    /// Returns whether this rule is enabled by default.
+    fn enabled_by_default(&self) -> bool {
+        true
+    }
+
+    /// Returns whether this rule requires command output to match.
+    fn requires_output(&self) -> bool {
+        true
+    }
+}
+
+/// Default priority for rules (matches Python's DEFAULT_PRIORITY = 1000)
+pub const DEFAULT_PRIORITY: i32 = 1000;
+
+/// Metadata for a rule, used for static rule registration.
+#[derive(Clone, Debug)]
+pub struct RuleInfo {
+    pub name: String,
+    pub priority: i32,
+    pub enabled_by_default: bool,
+    pub requires_output: bool,
+}
+
+impl RuleInfo {
+    pub fn new(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            priority: DEFAULT_PRIORITY,
+            enabled_by_default: true,
+            requires_output: true,
+        }
+    }
+
+    pub fn with_priority(mut self, priority: i32) -> Self {
+        self.priority = priority;
+        self
+    }
+
+    pub fn disabled_by_default(mut self) -> Self {
+        self.enabled_by_default = false;
+        self
+    }
+
+    pub fn no_output_required(mut self) -> Self {
+        self.requires_output = false;
+        self
+    }
+}
+
+/// Represents a corrected command generated by a rule.
+///
+/// This is the Rust equivalent of Python's `CorrectedCommand` class.
+#[derive(Clone)]
+pub struct CorrectedCommand {
+    /// The corrected command script
+    pub script: String,
+    /// The rule that generated this correction
+    pub rule_name: String,
+    /// Priority for sorting (lower = shown first)
+    pub priority: i32,
+    /// Optional side effect function
+    side_effect_fn: Option<fn(&Command, &str)>,
+}
+
+impl CorrectedCommand {
+    /// Creates a new CorrectedCommand.
+    pub fn new(script: impl Into<String>, rule_name: impl Into<String>, priority: i32) -> Self {
+        Self {
+            script: script.into(),
+            rule_name: rule_name.into(),
+            priority,
+            side_effect_fn: None,
+        }
+    }
+
+    /// Creates a CorrectedCommand with a side effect.
+    pub fn with_side_effect(
+        script: impl Into<String>,
+        rule_name: impl Into<String>,
+        priority: i32,
+        side_effect: fn(&Command, &str),
+    ) -> Self {
+        Self {
+            script: script.into(),
+            rule_name: rule_name.into(),
+            priority,
+            side_effect_fn: Some(side_effect),
+        }
+    }
+
+    /// Runs any side effect associated with this correction.
+    pub fn run_side_effect(&self, old_cmd: &Command) {
+        if let Some(side_effect) = self.side_effect_fn {
+            side_effect(old_cmd, &self.script);
+        }
+    }
+}
+
+impl fmt::Debug for CorrectedCommand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("CorrectedCommand")
+            .field("script", &self.script)
+            .field("rule_name", &self.rule_name)
+            .field("priority", &self.priority)
+            .field("has_side_effect", &self.side_effect_fn.is_some())
+            .finish()
+    }
+}
+
+impl fmt::Display for CorrectedCommand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.script)
+    }
+}
+
+impl PartialEq for CorrectedCommand {
+    fn eq(&self, other: &Self) -> bool {
+        // Equality ignores priority (matches Python behavior)
+        self.script == other.script && self.rule_name == other.rule_name
+    }
+}
+
+impl Eq for CorrectedCommand {}
+
+impl std::hash::Hash for CorrectedCommand {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.script.hash(state);
+        self.rule_name.hash(state);
+    }
+}
+
+impl PartialOrd for CorrectedCommand {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for CorrectedCommand {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.priority.cmp(&other.priority)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_command_new() {
+        let cmd = Command::new("git push", Some("error: failed to push".to_string()));
+        assert_eq!(cmd.script, "git push");
+        assert_eq!(cmd.output, Some("error: failed to push".to_string()));
+    }
+
+    #[test]
+    fn test_command_script_parts() {
+        let mut cmd = Command::new("git push origin main", None);
+        let parts = cmd.script_parts();
+        assert_eq!(parts, &["git", "push", "origin", "main"]);
+    }
+
+    #[test]
+    fn test_command_script_parts_with_quotes() {
+        let mut cmd = Command::new("echo \"hello world\"", None);
+        let parts = cmd.script_parts();
+        assert_eq!(parts, &["echo", "hello world"]);
+    }
+
+    #[test]
+    fn test_command_from_raw_script_empty() {
+        let result = Command::from_raw_script("");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_corrected_command_ordering() {
+        let cmd1 = CorrectedCommand::new("fix1", "rule1", 100);
+        let cmd2 = CorrectedCommand::new("fix2", "rule2", 200);
+        assert!(cmd1 < cmd2);
+    }
+
+    #[test]
+    fn test_corrected_command_equality_ignores_priority() {
+        let cmd1 = CorrectedCommand::new("fix", "rule", 100);
+        let cmd2 = CorrectedCommand::new("fix", "rule", 200);
+        assert_eq!(cmd1, cmd2);
+    }
+}
