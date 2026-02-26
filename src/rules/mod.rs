@@ -11,11 +11,29 @@
 
 use crate::types::Rule;
 
-// Rule modules will be added here as we implement them
-// pub mod sudo;
-// pub mod git_push;
-// pub mod no_command;
-// etc.
+// Rule modules
+pub mod cd_mkdir;
+pub mod cd_parent;
+pub mod cp_omitting_directory;
+pub mod git_not_command;
+pub mod git_push;
+pub mod ls_la;
+pub mod mkdir_p;
+pub mod no_command;
+pub mod rm_dir;
+pub mod sudo;
+
+// Re-export rules
+pub use cd_mkdir::CdMkdirRule;
+pub use cd_parent::CdParentRule;
+pub use cp_omitting_directory::CpOmittingDirectoryRule;
+pub use git_not_command::GitNotCommandRule;
+pub use git_push::GitPushRule;
+pub use ls_la::LsLaRule;
+pub use mkdir_p::MkdirPRule;
+pub use no_command::NoCommandRule;
+pub use rm_dir::RmDirRule;
+pub use sudo::SudoRule;
 
 /// Returns all built-in rules.
 ///
@@ -24,10 +42,22 @@ use crate::types::Rule;
 /// is done by the Corrector.
 pub fn get_builtin_rules() -> Vec<Box<dyn Rule>> {
     let rules: Vec<Box<dyn Rule>> = vec![
-        // Rules will be added here as we implement them
-        // Box::new(sudo::SudoRule::new()),
-        // Box::new(git_push::GitPushRule::new()),
-        // etc.
+        // Permission rules
+        Box::new(SudoRule::new()),
+        // Directory rules
+        Box::new(CdMkdirRule::new()),
+        Box::new(CdParentRule::new()),
+        Box::new(MkdirPRule::new()),
+        // File operation rules
+        Box::new(RmDirRule::new()),
+        Box::new(CpOmittingDirectoryRule::new()),
+        // Git rules
+        Box::new(GitPushRule::new()),
+        Box::new(GitNotCommandRule::new()),
+        // Command rules
+        Box::new(NoCommandRule::new()),
+        // Misc rules
+        Box::new(LsLaRule::new()),
     ];
 
     tracing::debug!("Loaded {} built-in rules", rules.len());
@@ -98,7 +128,23 @@ mod tests {
     #[test]
     fn test_get_builtin_rules() {
         let rules = get_builtin_rules();
-        // For now, we have no rules, so this should be empty
-        assert!(rules.is_empty());
+        assert_eq!(rules.len(), 10);
+    }
+
+    #[test]
+    fn test_builtin_rules_have_names() {
+        let rules = get_builtin_rules();
+        let names: Vec<&str> = rules.iter().map(|r| r.name()).collect();
+
+        assert!(names.contains(&"sudo"));
+        assert!(names.contains(&"cd_mkdir"));
+        assert!(names.contains(&"cd_parent"));
+        assert!(names.contains(&"mkdir_p"));
+        assert!(names.contains(&"rm_dir"));
+        assert!(names.contains(&"cp_omitting_directory"));
+        assert!(names.contains(&"git_push"));
+        assert!(names.contains(&"git_not_command"));
+        assert!(names.contains(&"no_command"));
+        assert!(names.contains(&"ls_la"));
     }
 }

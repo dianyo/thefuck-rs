@@ -34,6 +34,9 @@ crossterm = "0.27"
 # String similarity for fuzzy matching
 strsim = "0.11"
 
+# Regular expressions
+regex = "1"
+
 # Error handling
 thiserror = "1"
 anyhow = "1"
