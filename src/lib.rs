@@ -28,10 +28,12 @@
 //! assert_eq!(parts[0], "git");
 //! ```
 
+pub mod config;
 pub mod error;
 pub mod shell;
 pub mod types;
 
 // Re-export commonly used types
+pub use config::Settings;
 pub use error::{Result, TheFuckError};
 pub use types::{Command, CorrectedCommand, Rule, RuleInfo, DEFAULT_PRIORITY};
