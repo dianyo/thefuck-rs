@@ -248,10 +248,49 @@ fn fix_command(history_or_command: &str, settings: &Settings) {
         eprintln!("{}: {}", "Command object".blue(), cmd);
     }
 
-    // TODO: Implement actual rule matching (Phase 4+)
-    println!(
-        "{}",
-        "Rule matching not yet implemented. Phase 4+ required.".yellow()
-    );
-    println!("Command: {}", command);
+    // Get built-in rules
+    let builtin_rules = thefuck::get_builtin_rules();
+    let rules: Vec<&dyn thefuck::Rule> = builtin_rules.iter().map(|r| r.as_ref()).collect();
+
+    if settings.debug {
+        eprintln!("{}: {} rules loaded", "Corrector".blue(), rules.len());
+    }
+
+    // Create corrector and get corrections
+    let corrector = thefuck::Corrector::new(rules, settings);
+    let corrections = corrector.get_corrected_commands(&cmd);
+
+    if corrections.is_empty() {
+        println!(
+            "{}",
+            "No correction found. Add more rules in Phase 5+.".yellow()
+        );
+        println!("Command: {}", command);
+    } else {
+        // For now, just print the first correction
+        // UI selection will be added in Phase 6
+        println!("{}", "Corrections found:".green());
+        for (i, correction) in corrections.iter().enumerate() {
+            if i == 0 {
+                println!(
+                    "  {} {} {}",
+                    "→".green(),
+                    correction.script.green().bold(),
+                    format!("[{}]", correction.rule_name).dimmed()
+                );
+            } else {
+                println!(
+                    "    {} {}",
+                    correction.script,
+                    format!("[{}]", correction.rule_name).dimmed()
+                );
+            }
+        }
+
+        // Output the first correction for the shell to eval
+        // (In the real flow, this would be selected by the user)
+        if !settings.require_confirmation {
+            print!("{}", corrections[0].script);
+        }
+    }
 }

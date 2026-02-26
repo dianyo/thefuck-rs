@@ -29,11 +29,15 @@
 //! ```
 
 pub mod config;
+pub mod corrector;
 pub mod error;
+pub mod rules;
 pub mod shell;
 pub mod types;
 
 // Re-export commonly used types
 pub use config::Settings;
+pub use corrector::Corrector;
 pub use error::{Result, TheFuckError};
+pub use rules::get_builtin_rules;
 pub use types::{Command, CorrectedCommand, Rule, RuleInfo, DEFAULT_PRIORITY};
