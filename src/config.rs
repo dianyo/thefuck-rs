@@ -447,10 +447,7 @@ impl Settings {
 
     /// Gets the effective priority for a rule.
     pub fn get_rule_priority(&self, rule_name: &str, default: i32) -> i32 {
-        self.priority
-            .get(rule_name)
-            .copied()
-            .unwrap_or(default)
+        self.priority.get(rule_name).copied().unwrap_or(default)
     }
 
     /// Checks if a command is a slow command.
@@ -461,9 +458,9 @@ impl Settings {
         }
 
         let cmd_name = cmd_parts[0];
-        self.slow_commands.iter().any(|slow| {
-            slow == cmd_name || slow == command
-        })
+        self.slow_commands
+            .iter()
+            .any(|slow| slow == cmd_name || slow == command)
     }
 
     /// Returns the timeout for a command.
@@ -582,7 +579,10 @@ mod tests {
         "#;
 
         let partial: SettingsPartial = toml::from_str(toml_content).unwrap();
-        assert_eq!(partial.rules, Some(vec!["sudo".to_string(), "git_push".to_string()]));
+        assert_eq!(
+            partial.rules,
+            Some(vec!["sudo".to_string(), "git_push".to_string()])
+        );
         assert_eq!(partial.wait_command, Some(5));
         assert_eq!(partial.debug, Some(true));
     }

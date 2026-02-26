@@ -13,8 +13,10 @@ pub struct GitAddRule {
 impl GitAddRule {
     pub fn new() -> Self {
         Self {
-            pathspec_re: Regex::new(r"error: pathspec '([^']*)' did not match any file\(s\) known to git")
-                .unwrap(),
+            pathspec_re: Regex::new(
+                r"error: pathspec '([^']*)' did not match any file\(s\) known to git",
+            )
+            .unwrap(),
         }
     }
 
@@ -99,6 +101,9 @@ mod tests {
         );
 
         let result = rule.get_new_command(&cmd);
-        assert_eq!(result, vec!["git add -- newfile.txt && git commit -m 'test'"]);
+        assert_eq!(
+            result,
+            vec!["git add -- newfile.txt && git commit -m 'test'"]
+        );
     }
 }

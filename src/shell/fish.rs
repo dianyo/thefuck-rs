@@ -113,9 +113,7 @@ end"#,
         let history_file = self.get_history_file();
 
         if history_file.exists() {
-            let mut file = OpenOptions::new()
-                .append(true)
-                .open(&history_file)?;
+            let mut file = OpenOptions::new().append(true).open(&history_file)?;
             let entry = Self::format_history_line(command);
             file.write_all(entry.as_bytes())?;
         }

@@ -82,10 +82,7 @@ mod tests {
     fn test_python_command_no_match_not_python() {
         let rule = PythonCommandRule::new();
 
-        let cmd = Command::new(
-            "script.sh",
-            Some("Permission denied".to_string()),
-        );
+        let cmd = Command::new("script.sh", Some("Permission denied".to_string()));
         assert!(!rule.matches(&cmd));
     }
 

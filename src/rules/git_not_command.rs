@@ -47,7 +47,8 @@ impl Rule for GitNotCommandRule {
         };
 
         // Git suggests: Did you mean this? / The most similar command is
-        let re_most_similar = Regex::new(r"(?i)the most similar command(?:s)? (?:is|are)\s*\n\s*(\S+)").unwrap();
+        let re_most_similar =
+            Regex::new(r"(?i)the most similar command(?:s)? (?:is|are)\s*\n\s*(\S+)").unwrap();
         let re_did_you_mean = Regex::new(r"(?i)did you mean this\?\s*\n\s*(\S+)").unwrap();
 
         let mut suggestions = Vec::new();
@@ -107,7 +108,10 @@ The most similar command is
     #[test]
     fn test_git_not_command_matches() {
         let rule = GitNotCommandRule::new();
-        let cmd = Command::new("git psuh origin main", Some(GIT_NOT_COMMAND_OUTPUT.to_string()));
+        let cmd = Command::new(
+            "git psuh origin main",
+            Some(GIT_NOT_COMMAND_OUTPUT.to_string()),
+        );
         assert!(rule.matches(&cmd));
     }
 
@@ -131,7 +135,10 @@ The most similar command is
     #[test]
     fn test_git_not_command_get_new_command() {
         let rule = GitNotCommandRule::new();
-        let cmd = Command::new("git psuh origin main", Some(GIT_NOT_COMMAND_OUTPUT.to_string()));
+        let cmd = Command::new(
+            "git psuh origin main",
+            Some(GIT_NOT_COMMAND_OUTPUT.to_string()),
+        );
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["git push origin main"]);
     }

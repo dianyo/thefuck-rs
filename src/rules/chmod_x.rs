@@ -106,10 +106,7 @@ mod tests {
     fn test_chmod_x_no_match_regular_command() {
         let rule = ChmodXRule::new();
 
-        let cmd = Command::new(
-            "ls -la",
-            Some("Permission denied".to_string()),
-        );
+        let cmd = Command::new("ls -la", Some("Permission denied".to_string()));
 
         assert!(!rule.matches(&cmd));
     }
@@ -118,10 +115,7 @@ mod tests {
     fn test_chmod_x_no_match_without_permission_error() {
         let rule = ChmodXRule::new();
 
-        let cmd = Command::new(
-            "./script.sh",
-            Some("Hello, world!".to_string()),
-        );
+        let cmd = Command::new("./script.sh", Some("Hello, world!".to_string()));
 
         assert!(!rule.matches(&cmd));
     }
@@ -136,7 +130,10 @@ mod tests {
         );
 
         let result = rule.get_new_command(&cmd);
-        assert_eq!(result, vec!["chmod +x test_script.sh && ./test_script.sh arg1 arg2"]);
+        assert_eq!(
+            result,
+            vec!["chmod +x test_script.sh && ./test_script.sh arg1 arg2"]
+        );
     }
 
     #[test]
@@ -155,6 +152,8 @@ mod tests {
         fs::set_permissions(&file_path, perms).unwrap();
 
         // Verify our helper function works
-        assert!(ChmodXRule::file_exists_without_execute(file_path.to_str().unwrap()));
+        assert!(ChmodXRule::file_exists_without_execute(
+            file_path.to_str().unwrap()
+        ));
     }
 }

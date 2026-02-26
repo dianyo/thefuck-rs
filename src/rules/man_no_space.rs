@@ -67,10 +67,7 @@ mod tests {
     fn test_man_no_space_no_match_with_space() {
         let rule = ManNoSpaceRule::new();
 
-        let cmd = Command::new(
-            "man git",
-            Some("No manual entry for git".to_string()),
-        );
+        let cmd = Command::new("man git", Some("No manual entry for git".to_string()));
         assert!(!rule.matches(&cmd));
     }
 
@@ -78,10 +75,7 @@ mod tests {
     fn test_man_no_space_get_new_command() {
         let rule = ManNoSpaceRule::new();
 
-        let cmd = Command::new(
-            "mangit",
-            Some("command not found".to_string()),
-        );
+        let cmd = Command::new("mangit", Some("command not found".to_string()));
 
         let result = rule.get_new_command(&cmd);
         assert_eq!(result, vec!["man git"]);
@@ -91,10 +85,7 @@ mod tests {
     fn test_man_no_space_compound() {
         let rule = ManNoSpaceRule::new();
 
-        let cmd = Command::new(
-            "mangit-status",
-            Some("command not found".to_string()),
-        );
+        let cmd = Command::new("mangit-status", Some("command not found".to_string()));
 
         let result = rule.get_new_command(&cmd);
         assert_eq!(result, vec!["man git-status"]);

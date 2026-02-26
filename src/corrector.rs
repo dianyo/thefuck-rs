@@ -40,15 +40,16 @@ impl<'a> Corrector<'a> {
     fn is_match(&self, rule: &dyn Rule, command: &Command) -> bool {
         // If the rule requires output but we don't have any, skip
         if rule.requires_output() && command.output.is_none() {
-            tracing::debug!("Skipping rule '{}': requires output but none available", rule.name());
+            tracing::debug!(
+                "Skipping rule '{}': requires output but none available",
+                rule.name()
+            );
             return false;
         }
 
         tracing::debug!("Trying rule '{}'...", rule.name());
 
-        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            rule.matches(command)
-        })) {
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| rule.matches(command))) {
             Ok(result) => {
                 if result {
                     tracing::debug!("Rule '{}' matched!", rule.name());
@@ -56,22 +57,14 @@ impl<'a> Corrector<'a> {
                 result
             }
             Err(e) => {
-                tracing::error!(
-                    "Rule '{}' panicked during match: {:?}",
-                    rule.name(),
-                    e
-                );
+                tracing::error!("Rule '{}' panicked during match: {:?}", rule.name(), e);
                 false
             }
         }
     }
 
     /// Gets corrected commands from a matching rule.
-    fn get_corrected_from_rule(
-        &self,
-        rule: &dyn Rule,
-        command: &Command,
-    ) -> Vec<CorrectedCommand> {
+    fn get_corrected_from_rule(&self, rule: &dyn Rule, command: &Command) -> Vec<CorrectedCommand> {
         let base_priority = self
             .settings
             .get_rule_priority(rule.name(), rule.priority());

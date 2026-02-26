@@ -43,12 +43,10 @@ impl Command {
     /// Uses shell-aware splitting to handle quotes and escapes properly.
     pub fn script_parts(&mut self) -> &[String] {
         if self.script_parts_cache.is_none() {
-            self.script_parts_cache = Some(
-                shlex::split(&self.script).unwrap_or_else(|| {
-                    // Fallback to simple whitespace splitting
-                    self.script.split_whitespace().map(String::from).collect()
-                }),
-            );
+            self.script_parts_cache = Some(shlex::split(&self.script).unwrap_or_else(|| {
+                // Fallback to simple whitespace splitting
+                self.script.split_whitespace().map(String::from).collect()
+            }));
         }
         self.script_parts_cache.as_ref().unwrap()
     }

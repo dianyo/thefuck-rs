@@ -82,7 +82,10 @@ mod tests {
 
         let cmd = Command::new(
             "touch /nonexistent/path/file.txt",
-            Some("touch: cannot touch '/nonexistent/path/file.txt': No such file or directory".to_string()),
+            Some(
+                "touch: cannot touch '/nonexistent/path/file.txt': No such file or directory"
+                    .to_string(),
+            ),
         );
         assert!(rule.matches(&cmd));
     }
@@ -91,10 +94,7 @@ mod tests {
     fn test_touch_no_match_success() {
         let rule = TouchRule::new();
 
-        let cmd = Command::new(
-            "touch file.txt",
-            Some("".to_string()),
-        );
+        let cmd = Command::new("touch file.txt", Some("".to_string()));
         assert!(!rule.matches(&cmd));
     }
 
@@ -108,6 +108,9 @@ mod tests {
         );
 
         let result = rule.get_new_command(&cmd);
-        assert_eq!(result, vec!["mkdir -p /nonexistent/path && touch /nonexistent/path/file.txt"]);
+        assert_eq!(
+            result,
+            vec!["mkdir -p /nonexistent/path && touch /nonexistent/path/file.txt"]
+        );
     }
 }

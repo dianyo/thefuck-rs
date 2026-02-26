@@ -89,10 +89,7 @@ mod tests {
     #[test]
     fn test_cp_omitting_directory_get_new_command() {
         let rule = CpOmittingDirectoryRule::new();
-        let cmd = Command::new(
-            "cp mydir /dest",
-            Some("omitting directory".to_string()),
-        );
+        let cmd = Command::new("cp mydir /dest", Some("omitting directory".to_string()));
         assert_eq!(rule.get_new_command(&cmd), vec!["cp -r mydir /dest"]);
     }
 }

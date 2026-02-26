@@ -74,7 +74,13 @@ impl NoCommandRule {
     fn get_close_matches(&mut self, name: &str, max_matches: usize) -> Vec<String> {
         let executables = self.get_all_executables();
         // Use lower threshold for short names (jaro_winkler gives lower scores for short strings)
-        let threshold = if name.len() <= 3 { 0.5 } else if name.len() <= 5 { 0.6 } else { 0.7 };
+        let threshold = if name.len() <= 3 {
+            0.5
+        } else if name.len() <= 5 {
+            0.6
+        } else {
+            0.7
+        };
 
         let mut matches: Vec<(String, f64)> = executables
             .iter()
@@ -179,7 +185,10 @@ mod tests {
         let rule = NoCommandRule::new();
         // This test is environment-dependent (needs git on PATH)
         // We're testing the logic, not the actual matching
-        let cmd = Command::new("gti status", Some("zsh: command not found: gti".to_string()));
+        let cmd = Command::new(
+            "gti status",
+            Some("zsh: command not found: gti".to_string()),
+        );
 
         // The rule will match if 'git' is in PATH and 'gti' is not
         // This is environment-dependent, so we just check the output parsing
@@ -192,19 +201,35 @@ mod tests {
         // Test that the jaro_winkler similarity algorithm works as expected
         // "gti" is a typo of "git" - jaro_winkler gives ~0.55
         let similarity = jaro_winkler("git", "gti");
-        assert!(similarity > 0.5, "gti should be similar to git, got {}", similarity);
+        assert!(
+            similarity > 0.5,
+            "gti should be similar to git, got {}",
+            similarity
+        );
 
         // "git" and "xyz" should not be similar
         let similarity2 = jaro_winkler("git", "xyz");
-        assert!(similarity2 < 0.5, "xyz should not be similar to git, got {}", similarity2);
+        assert!(
+            similarity2 < 0.5,
+            "xyz should not be similar to git, got {}",
+            similarity2
+        );
 
         // "push" and "psuh" should be similar (transposition)
         let similarity3 = jaro_winkler("push", "psuh");
-        assert!(similarity3 > 0.7, "psuh should be similar to push, got {}", similarity3);
+        assert!(
+            similarity3 > 0.7,
+            "psuh should be similar to push, got {}",
+            similarity3
+        );
 
         // "mkdir" and "mkidr" should be similar
         let similarity4 = jaro_winkler("mkdir", "mkidr");
-        assert!(similarity4 > 0.8, "mkidr should be similar to mkdir, got {}", similarity4);
+        assert!(
+            similarity4 > 0.8,
+            "mkidr should be similar to mkdir, got {}",
+            similarity4
+        );
     }
 
     #[test]

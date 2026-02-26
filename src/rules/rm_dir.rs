@@ -46,20 +46,14 @@ mod tests {
     #[test]
     fn test_rm_dir_matches() {
         let rule = RmDirRule::new();
-        let cmd = Command::new(
-            "rm mydir",
-            Some("rm: mydir: is a directory".to_string()),
-        );
+        let cmd = Command::new("rm mydir", Some("rm: mydir: is a directory".to_string()));
         assert!(rule.matches(&cmd));
     }
 
     #[test]
     fn test_rm_dir_no_match_with_r_flag() {
         let rule = RmDirRule::new();
-        let cmd = Command::new(
-            "rm -r mydir",
-            Some("rm: mydir: is a directory".to_string()),
-        );
+        let cmd = Command::new("rm -r mydir", Some("rm: mydir: is a directory".to_string()));
         assert!(!rule.matches(&cmd));
     }
 
@@ -76,20 +70,14 @@ mod tests {
     #[test]
     fn test_rm_dir_get_new_command() {
         let rule = RmDirRule::new();
-        let cmd = Command::new(
-            "rm mydir",
-            Some("is a directory".to_string()),
-        );
+        let cmd = Command::new("rm mydir", Some("is a directory".to_string()));
         assert_eq!(rule.get_new_command(&cmd), vec!["rm -r mydir"]);
     }
 
     #[test]
     fn test_rm_dir_get_new_command_with_force() {
         let rule = RmDirRule::new();
-        let cmd = Command::new(
-            "rm -f mydir",
-            Some("is a directory".to_string()),
-        );
+        let cmd = Command::new("rm -f mydir", Some("is a directory".to_string()));
         assert_eq!(rule.get_new_command(&cmd), vec!["rm -r -f mydir"]);
     }
 }

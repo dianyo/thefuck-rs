@@ -53,10 +53,7 @@ mod tests {
     fn test_git_stash_matches_no_entries() {
         let rule = GitStashRule::new();
 
-        let cmd = Command::new(
-            "git stash pop",
-            Some("No stash entries found.".to_string()),
-        );
+        let cmd = Command::new("git stash pop", Some("No stash entries found.".to_string()));
         assert!(rule.matches(&cmd));
     }
 
@@ -75,10 +72,7 @@ mod tests {
     fn test_git_stash_get_new_command() {
         let rule = GitStashRule::new();
 
-        let cmd = Command::new(
-            "git stash pop",
-            Some("No stash entries found.".to_string()),
-        );
+        let cmd = Command::new("git stash pop", Some("No stash entries found.".to_string()));
 
         let result = rule.get_new_command(&cmd);
         assert_eq!(result, vec!["git stash list"]);

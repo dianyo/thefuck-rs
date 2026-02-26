@@ -100,10 +100,7 @@ mod tests {
             Some("no such file or directory".to_string()),
         );
         let new_commands = rule.get_new_command(&cmd);
-        assert_eq!(
-            new_commands,
-            vec!["mkdir -p myproject && cd myproject"]
-        );
+        assert_eq!(new_commands, vec!["mkdir -p myproject && cd myproject"]);
     }
 
     #[test]

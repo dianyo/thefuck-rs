@@ -47,9 +47,7 @@ fn benchmark_command_script_parts(c: &mut Criterion) {
 /// Benchmark rule loading
 fn benchmark_rule_loading(c: &mut Criterion) {
     c.bench_function("get_builtin_rules", |b| {
-        b.iter(|| {
-            black_box(get_builtin_rules())
-        })
+        b.iter(|| black_box(get_builtin_rules()))
     });
 }
 
@@ -80,30 +78,21 @@ fn benchmark_corrector(c: &mut Criterion) {
             "cat /etc/shadow",
             Some("cat: /etc/shadow: Permission denied".to_string()),
         );
-        b.iter(|| {
-            black_box(corrector.get_corrected_commands(&cmd))
-        })
+        b.iter(|| black_box(corrector.get_corrected_commands(&cmd)))
     });
 
     // Command that matches cd_parent (no output required)
     group.bench_function("cd_parent", |b| {
         let corrector = Corrector::new(rule_refs.clone(), &settings);
         let cmd = Command::new("cd..", None);
-        b.iter(|| {
-            black_box(corrector.get_corrected_commands(&cmd))
-        })
+        b.iter(|| black_box(corrector.get_corrected_commands(&cmd)))
     });
 
     // Command that matches nothing
     group.bench_function("no_match", |b| {
         let corrector = Corrector::new(rule_refs.clone(), &settings);
-        let cmd = Command::new(
-            "echo hello",
-            Some("hello".to_string()),
-        );
-        b.iter(|| {
-            black_box(corrector.get_corrected_commands(&cmd))
-        })
+        let cmd = Command::new("echo hello", Some("hello".to_string()));
+        b.iter(|| black_box(corrector.get_corrected_commands(&cmd)))
     });
 
     group.finish();
@@ -112,9 +101,7 @@ fn benchmark_corrector(c: &mut Criterion) {
 /// Benchmark settings loading
 fn benchmark_settings(c: &mut Criterion) {
     c.bench_function("Settings::default", |b| {
-        b.iter(|| {
-            black_box(Settings::default())
-        })
+        b.iter(|| black_box(Settings::default()))
     });
 }
 
@@ -155,14 +142,9 @@ fn benchmark_rule_matching(c: &mut Criterion) {
 
     // Sudo rule
     let sudo_rule = SudoRule::new();
-    let sudo_cmd = Command::new(
-        "cat /etc/shadow",
-        Some("Permission denied".to_string()),
-    );
+    let sudo_cmd = Command::new("cat /etc/shadow", Some("Permission denied".to_string()));
     group.bench_function("sudo_match", |b| {
-        b.iter(|| {
-            black_box(sudo_rule.matches(&sudo_cmd))
-        })
+        b.iter(|| black_box(sudo_rule.matches(&sudo_cmd)))
     });
 
     // Git not command rule
@@ -172,18 +154,14 @@ fn benchmark_rule_matching(c: &mut Criterion) {
         Some("git: 'psuh' is not a git command.".to_string()),
     );
     group.bench_function("git_not_command_match", |b| {
-        b.iter(|| {
-            black_box(git_rule.matches(&git_cmd))
-        })
+        b.iter(|| black_box(git_rule.matches(&git_cmd)))
     });
 
     // Cd parent rule (no output)
     let cd_rule = CdParentRule::new();
     let cd_cmd = Command::new("cd..", None);
     group.bench_function("cd_parent_match", |b| {
-        b.iter(|| {
-            black_box(cd_rule.matches(&cd_cmd))
-        })
+        b.iter(|| black_box(cd_rule.matches(&cd_cmd)))
     });
 
     group.finish();

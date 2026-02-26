@@ -177,11 +177,23 @@ fn show_config(settings: &Settings) {
         println!("  Config directory: {}", config_dir.display());
     }
     if let Some(config_file) = Settings::config_file_path() {
-        let exists = if config_file.exists() { "(exists)" } else { "(not found)" };
-        println!("  Settings file: {} {}", config_file.display(), exists.dimmed());
+        let exists = if config_file.exists() {
+            "(exists)"
+        } else {
+            "(not found)"
+        };
+        println!(
+            "  Settings file: {} {}",
+            config_file.display(),
+            exists.dimmed()
+        );
     }
     if let Some(rules_dir) = Settings::user_rules_dir() {
-        let exists = if rules_dir.exists() { "(exists)" } else { "(not found)" };
+        let exists = if rules_dir.exists() {
+            "(exists)"
+        } else {
+            "(not found)"
+        };
         println!("  User rules: {} {}", rules_dir.display(), exists.dimmed());
     }
     println!();
@@ -206,7 +218,10 @@ fn show_config(settings: &Settings) {
         println!("  priority overrides: {:?}", settings.priority);
     }
     if !settings.excluded_search_path_prefixes.is_empty() {
-        println!("  excluded_search_path_prefixes: {:?}", settings.excluded_search_path_prefixes);
+        println!(
+            "  excluded_search_path_prefixes: {:?}",
+            settings.excluded_search_path_prefixes
+        );
     }
 }
 

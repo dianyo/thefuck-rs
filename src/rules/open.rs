@@ -93,10 +93,7 @@ mod tests {
     fn test_open_get_new_command() {
         let rule = OpenRule::new();
 
-        let cmd = Command::new(
-            "open document.pdf",
-            Some("command not found".to_string()),
-        );
+        let cmd = Command::new("open document.pdf", Some("command not found".to_string()));
 
         let result = rule.get_new_command(&cmd);
         assert_eq!(result, vec!["xdg-open document.pdf"]);

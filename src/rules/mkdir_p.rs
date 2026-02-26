@@ -49,7 +49,10 @@ mod tests {
         let rule = MkdirPRule::new();
         let cmd = Command::new(
             "mkdir /path/to/new/dir",
-            Some("mkdir: cannot create directory '/path/to/new/dir': No such file or directory".to_string()),
+            Some(
+                "mkdir: cannot create directory '/path/to/new/dir': No such file or directory"
+                    .to_string(),
+            ),
         );
         assert!(rule.matches(&cmd));
     }
@@ -71,7 +74,10 @@ mod tests {
     #[test]
     fn test_mkdir_p_get_new_command() {
         let rule = MkdirPRule::new();
-        let cmd = Command::new("mkdir /path/to/dir", Some("No such file or directory".to_string()));
+        let cmd = Command::new(
+            "mkdir /path/to/dir",
+            Some("No such file or directory".to_string()),
+        );
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["mkdir -p /path/to/dir"]);
     }
@@ -79,7 +85,10 @@ mod tests {
     #[test]
     fn test_mkdir_p_get_new_command_with_flags() {
         let rule = MkdirPRule::new();
-        let cmd = Command::new("mkdir -m 755 /path/to/dir", Some("No such file or directory".to_string()));
+        let cmd = Command::new(
+            "mkdir -m 755 /path/to/dir",
+            Some("No such file or directory".to_string()),
+        );
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["mkdir -p -m 755 /path/to/dir"]);
     }

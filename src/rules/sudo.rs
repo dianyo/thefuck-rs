@@ -61,10 +61,7 @@ impl Rule for SudoRule {
         // Don't match if already using sudo (unless && is present)
         let mut cmd = command.clone();
         let script_parts = cmd.script_parts();
-        if !script_parts.is_empty()
-            && script_parts[0] == "sudo"
-            && !command.script.contains("&&")
-        {
+        if !script_parts.is_empty() && script_parts[0] == "sudo" && !command.script.contains("&&") {
             return false;
         }
 
@@ -147,7 +144,10 @@ mod tests {
     #[test]
     fn test_sudo_get_new_command_with_redirect() {
         let rule = SudoRule::new();
-        let cmd = Command::new("echo 'test' > /etc/file", Some("Permission denied".to_string()));
+        let cmd = Command::new(
+            "echo 'test' > /etc/file",
+            Some("Permission denied".to_string()),
+        );
         let new_commands = rule.get_new_command(&cmd);
         assert_eq!(new_commands, vec!["sudo sh -c \"echo 'test' > /etc/file\""]);
     }

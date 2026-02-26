@@ -185,7 +185,10 @@ fn load_rule_from_file(path: &PathBuf) -> Option<UserRule> {
 /// Creates the user rules directory if it doesn't exist.
 pub fn init_user_rules_dir() -> std::io::Result<PathBuf> {
     let rules_dir = Settings::user_rules_dir().ok_or_else(|| {
-        std::io::Error::new(std::io::ErrorKind::NotFound, "Could not determine rules directory")
+        std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "Could not determine rules directory",
+        )
     })?;
 
     if !rules_dir.exists() {

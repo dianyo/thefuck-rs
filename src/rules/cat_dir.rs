@@ -92,10 +92,7 @@ mod tests {
     fn test_cat_dir_get_new_command() {
         let rule = CatDirRule::new();
 
-        let cmd = Command::new(
-            "cat /tmp",
-            Some("cat: /tmp: Is a directory".to_string()),
-        );
+        let cmd = Command::new("cat /tmp", Some("cat: /tmp: Is a directory".to_string()));
 
         let result = rule.get_new_command(&cmd);
         assert_eq!(result, vec!["ls /tmp"]);

@@ -5,7 +5,7 @@ use crossterm::{
     cursor,
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
-    style::{Color, Print, SetForegroundColor, ResetColor},
+    style::{Color, Print, ResetColor, SetForegroundColor},
     terminal::{self, ClearType},
 };
 use std::io::{self, Write};
@@ -130,13 +130,20 @@ fn show_confirmation(selector: &CommandSelector, no_colors: bool) {
 
     // Clear the current line
     let mut stderr = io::stderr();
-    execute!(stderr, cursor::MoveToColumn(0), terminal::Clear(ClearType::CurrentLine)).ok();
+    execute!(
+        stderr,
+        cursor::MoveToColumn(0),
+        terminal::Clear(ClearType::CurrentLine)
+    )
+    .ok();
 
     // Build the prompt using crossterm styling (works in raw mode)
     if no_colors {
         eprint!(
             "{} [{}/{}] [enter/↑/↓/ctrl+c]",
-            cmd.script, index + 1, total
+            cmd.script,
+            index + 1,
+            total
         );
     } else {
         // Use crossterm's execute! macro for colors in raw mode
@@ -172,7 +179,8 @@ fn show_confirmation(selector: &CommandSelector, no_colors: bool) {
             Print("ctrl+c"),
             ResetColor,
             Print("]"),
-        ).ok();
+        )
+        .ok();
     }
     stderr.flush().ok();
 }

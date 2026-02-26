@@ -37,21 +37,16 @@ impl Zsh {
     /// Gets aliases from TF_SHELL_ALIASES environment variable.
     fn get_aliases_from_env() -> HashMap<String, String> {
         let raw_aliases = env::var("TF_SHELL_ALIASES").unwrap_or_default();
-        raw_aliases
-            .lines()
-            .filter_map(Self::parse_alias)
-            .collect()
+        raw_aliases.lines().filter_map(Self::parse_alias).collect()
     }
 
     /// Gets the history file path.
     fn get_history_file(&self) -> PathBuf {
-        env::var("HISTFILE")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| {
-                dirs::home_dir()
-                    .map(|h| h.join(".zsh_history"))
-                    .unwrap_or_else(|| PathBuf::from("~/.zsh_history"))
-            })
+        env::var("HISTFILE").map(PathBuf::from).unwrap_or_else(|_| {
+            dirs::home_dir()
+                .map(|h| h.join(".zsh_history"))
+                .unwrap_or_else(|| PathBuf::from("~/.zsh_history"))
+        })
     }
 
     /// Extracts command from zsh history line.

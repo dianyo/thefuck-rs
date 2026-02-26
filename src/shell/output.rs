@@ -11,11 +11,7 @@ use std::time::Duration;
 pub fn get_output(script: &str, expanded: &str, settings: &Settings) -> Result<Option<String>> {
     let timeout = settings.get_timeout(script);
 
-    tracing::debug!(
-        "Re-running command: {} (timeout: {}s)",
-        expanded,
-        timeout
-    );
+    tracing::debug!("Re-running command: {} (timeout: {}s)", expanded, timeout);
 
     // Build environment
     let mut env: HashMap<String, String> = std::env::vars().collect();
@@ -87,10 +83,7 @@ fn run_with_timeout(
 
 /// Waits for a child process with a timeout.
 /// Returns true if the process completed, false if it timed out.
-fn wait_with_timeout(
-    child: &mut std::process::Child,
-    timeout: Duration,
-) -> Result<bool> {
+fn wait_with_timeout(child: &mut std::process::Child, timeout: Duration) -> Result<bool> {
     let start = std::time::Instant::now();
     let poll_interval = Duration::from_millis(100);
 

@@ -22,10 +22,7 @@ pub fn execute_command(script: &str) -> io::Result<ExitStatus> {
 pub fn execute_command_capture(script: &str) -> io::Result<(ExitStatus, String, String)> {
     let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string());
 
-    let output = Command::new(&shell)
-        .arg("-c")
-        .arg(script)
-        .output()?;
+    let output = Command::new(&shell).arg("-c").arg(script).output()?;
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
