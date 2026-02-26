@@ -137,6 +137,7 @@ fn show_shell() {
 }
 
 fn init_config() {
+    // Initialize config directory
     match Settings::init_config_dir() {
         Ok(path) => {
             println!("{}", "Configuration initialized!".green());
@@ -144,13 +145,24 @@ fn init_config() {
             if let Some(config_file) = Settings::config_file_path() {
                 println!("Settings file: {}", config_file.display());
             }
-            if let Some(rules_dir) = Settings::user_rules_dir() {
-                println!("User rules directory: {}", rules_dir.display());
-            }
         }
         Err(e) => {
             eprintln!("{}: {}", "Failed to initialize config".red(), e);
             std::process::exit(1);
+        }
+    }
+
+    // Initialize user rules directory
+    match thefuck::user_rules::init_user_rules_dir() {
+        Ok(path) => {
+            println!("User rules directory: {}", path.display());
+            println!();
+            println!("{}", "To add custom rules:".blue());
+            println!("  1. Create a .toml file in the rules directory");
+            println!("  2. See example.toml.disabled for the format");
+        }
+        Err(e) => {
+            eprintln!("{}: {}", "Failed to create rules directory".yellow(), e);
         }
     }
 }
@@ -250,11 +262,28 @@ fn fix_command(history_or_command: &str, settings: &Settings) {
 
     // Get built-in rules
     let builtin_rules = thefuck::get_builtin_rules();
-    let rules: Vec<&dyn thefuck::Rule> = builtin_rules.iter().map(|r| r.as_ref()).collect();
+
+    // Get user-defined rules
+    let user_rules = thefuck::load_user_rules();
+
+    // Combine all rules
+    let all_rules: Vec<&dyn thefuck::Rule> = builtin_rules
+        .iter()
+        .map(|r| r.as_ref())
+        .chain(user_rules.iter().map(|r| r.as_ref()))
+        .collect();
 
     if settings.debug {
-        eprintln!("{}: {} rules loaded", "Corrector".blue(), rules.len());
+        eprintln!(
+            "{}: {} built-in + {} user = {} total rules loaded",
+            "Corrector".blue(),
+            builtin_rules.len(),
+            user_rules.len(),
+            all_rules.len()
+        );
     }
+
+    let rules = all_rules;
 
     // Create corrector and get corrections
     let corrector = thefuck::Corrector::new(rules, settings);
